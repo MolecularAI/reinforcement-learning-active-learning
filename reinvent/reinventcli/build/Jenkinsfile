@@ -1,0 +1,461 @@
+@Library('scp-model-pipeline')
+
+@NonCPS
+def getImageTag(branch, defaultBranch) {
+    def versionMatcher = branch =~ /^v(?<version>\d+\.\d+\.\d+(-.+)?)$/
+    def branchMatcher = branch =~ /^(feature|bugfix)\/(?<branch>.+)$/
+    def tag = branch
+    echo "TAG: ${tag}"
+    if (branch == defaultBranch) {
+        tag = 'latest'
+    } else if (versionMatcher.matches()) {
+        tag = versionMatcher.group('version')
+    } else if (branchMatcher.matches()) {
+        tag = branchMatcher.group('branch')
+    }
+
+    echo "TAG: ${tag}"
+
+    return tag.replaceAll(/[^-.\w]+/, '-').take(128)
+}
+
+def checkoutReinventLib(String libName, String libUrl, String version, String SSHKeyId) {
+    dir(libName) {
+        git(poll: false,
+            url: libUrl,
+            branch: version,
+            changelog: false,
+            credentialsId: SSHKeyId
+        )
+    }
+    // clean up tmp dir
+    sh "rm -rf ${libName}@tmp"
+}
+
+
+def prepareEnvVariables(Map envVars, Map envVarsFromSecrets) {
+    def content = ''
+    envVars.each { entry ->
+        content = "${content}${entry.key}=${entry.value}\n"
+    }
+    envVarsFromSecrets.each { entry ->
+        withCredentials(
+            [string(credentialsId: entry.value, variable: 'CURRENT_SECRET_VALUE')]
+        ) {
+            content = "${content}${entry.key}=${CURRENT_SECRET_VALUE}\n"
+        }
+    }
+
+    return content
+}
+
+def dockerLogin = 'AWS'
+def defaultBranch = 'master'
+def awsRegion = 'eu-west-1'
+def imgRegistry = '378255172879.dkr.ecr.eu-west-1.amazonaws.com'
+def SCPHost = 'login.scp.astrazeneca.net'
+def credentialIdSCPKey = 'add-scp-ssh-key'
+def credentialIdGitPushKey = 'add-reinvent-jenkins-git'
+def sleepCommand = '-c "sleep 3600"'
+def dockerfilePath = 'Dockerfile'
+def unittestsInvocationCommand = '-c "python main_test.py --unittests"'
+def imgRepository = 'add-reinvent-cli'
+def envVars = [:]
+def envVarsFromSecrets = [
+    'REMOTE_LOGGING_AUTH_TOKEN': 'reinvent-jwt',
+    'PIP_KEY': 'pip-key',
+    'AIZYNTH_TOKEN': 'aizynth-api-token-prod'
+]
+
+
+def singularityFilePrefix = 'ReinventCLI'
+def buildSSHKeyId = 'add-ssh-key'
+def envDefinitionFile = 'reinvent.yml'
+
+properties([
+    parameters([
+        choice(name: 'DEPLOY_MODE',
+            choices: ['default', 'skip', 'only'],
+            description: '''\
+            default: build docker image, publish it and deploy singularity image to SCP
+            skip: skip deployment just build the image and publish it;
+            only: deploy already published image (skip build);
+            '''.stripIndent()),
+
+        booleanParam(name: 'SKIP_TESTS',
+            defaultValue: false,
+            description: '''\
+            Skip running tests (use this with caution!).
+            '''.stripIndent()),
+
+        booleanParam(name: 'SKIP_SCAN',
+            defaultValue: true,
+            description: '''\
+            Skip running the SonarQube analysis (will spped up the pipeline execution but use this with caution!).
+            '''.stripIndent()),
+
+        string(name: 'REINVENT_CHEMISTRY_BRANCH',
+            defaultValue: 'master',
+            description: '''\
+            A branch of reinvent_chemistry to use for build.
+            '''.stripIndent()),
+
+        string(name: 'REINVENT_MODELS_BRANCH',
+            defaultValue: 'master',
+            description: '''\
+            A branch of reinvent_models to use for build.
+            '''.stripIndent()),
+
+        string(name: 'REINVENT_SCORING_BRANCH',
+            defaultValue: 'master',
+            description: '''\
+            A branch of reinvent_scoring to use for build.
+            '''.stripIndent()),
+
+        string(name: 'RELEASE_TAG',
+            defaultValue: '',
+            description: '''\
+            Provide tag version to make this a release (tagged) build.
+            This will create tags for reinventcli and libraries.
+            '''.stripIndent())
+    ])
+])
+
+def releaseTag = params.getOrDefault('RELEASE_TAG', '')
+
+// image tag
+def imgTag = getImageTag(releaseTag ?: env.BRANCH_NAME, defaultBranch)
+
+// sonar scanning mode
+def skipScan = params.getOrDefault('SKIP_SCAN', true)
+
+// testing mode
+def skipTests = params.getOrDefault('SKIP_TESTS', false)
+
+// deployment mode
+def deployMode = params.getOrDefault('DEPLOY_MODE', 'default')
+def skipBuild = deployMode == 'only'
+def skipDeploy = deployMode == 'skip'
+def chemistryVersion = params.getOrDefault('REINVENT_CHEMISTRY_BRANCH', 'master')
+def modelsVersion = params.getOrDefault('REINVENT_MODELS_BRANCH', 'master')
+def scoringVersion = params.getOrDefault('REINVENT_SCORING_BRANCH', 'master')
+def teamsWebHook = 'https://azcollaboration.webhook.office.com/webhookb2/fad6dfa3-0530-4b65-b65f-f1e83bd6fb92@af8e89a3-d9ac-422f-ad06-cc4eb4214314/IncomingWebhook/32e5aa47806f4e8dacba65eff46ab71a/96efbb05-b287-40bd-beb5-eeade5bc63ea'
+
+// we have to use plain arrays instead of maps because maps aren't serializable
+def reinventLIBS = [
+    [
+        'reinvent_chemistry',
+        'ssh://git@bitbucket.astrazeneca.net:7999/com/reinvent_chemistry.git',
+        chemistryVersion,
+    ],
+    [
+        'reinvent_models',
+        'ssh://git@bitbucket.astrazeneca.net:7999/com/reinvent_models.git',
+        modelsVersion,
+    ],
+    [
+        'reinvent_scoring',
+        'ssh://git@bitbucket.astrazeneca.net:7999/com/reinvent_scoring.git',
+        scoringVersion,
+    ]
+]
+
+// resulting file name
+def sifFileName = "${singularityFilePrefix}_${imgTag}"
+
+echo """\
+###################################################################
+Branch:                ${env.BRANCH_NAME}
+ReinventLIBS:          ${reinventLIBS}
+Image tag:             ${imgTag}
+Scan:                  ${!skipScan}
+Build:                 ${!skipBuild}
+Deploy:                ${!skipDeploy}
+Chemistry version:     ${chemistryVersion}
+Model version:         ${modelsVersion}
+Scoring version::      ${scoringVersion}
+Release:               ${releaseTag}
+###################################################################
+"""
+
+pipeline {
+    agent {
+        kubernetes {
+            yamlFile 'build/agent-pod.yaml'
+            defaultContainer 'builder'
+        }
+    }
+    options {
+        skipDefaultCheckout true
+    }
+    stages {
+        stage('Fetch') {
+            when { expression  { !skipBuild } }
+            steps {
+                // perform default checkout
+                checkout scm
+
+                script {
+                    for (entry in reinventLIBS) {
+                        checkoutReinventLib(entry[0], entry[1], entry[2], buildSSHKeyId)
+                    }
+                }
+            }
+        }
+        stage('Snapshot libs') {
+            when { expression  { releaseTag != '' } }
+            steps {
+                script {
+                    def releaseBranch = "release/${releaseTag}"
+                    // as we'll be pushing to repo - set user
+                    sh """
+                        git config --global user.name "Jenkins"
+                        git config --global user.email "adddevops@astrazeneca.com"
+                    """
+                    for (entry in reinventLIBS) {
+                        def libName = entry[0]
+                        def firstRelease = !entry[2].startsWith('release')
+                        dir(libName) {
+                            if (firstRelease) {
+                                // if it's first release of a major version - create a release branch
+                                sh "git checkout -b ${releaseBranch}"
+                            }
+                            // put the tag
+                            sh "git tag -a ${releaseTag} HEAD -m 'Automated tagging for release ${releaseTag}'"
+
+                            // finally, push it
+                            withCredentials([
+                                sshUserPrivateKey(
+                                    credentialsId: credentialIdGitPushKey,
+                                    keyFileVariable: 'SSH_KEY',
+                                    usernameVariable: 'SSH_USER'
+                                )
+                            ]) {
+                                withEnv(["GIT_SSH_COMMAND=ssh -o StrictHostKeyChecking=no -o User=${SSH_USER} -i ${SSH_KEY}"]) {
+                                    if (firstRelease) {
+                                        sh "git push --set-upstream origin ${releaseBranch} --tags"
+                                    } else {
+                                        sh "git push --tags"
+                                    }
+                                }
+                            }
+                        }
+
+                        // update version in the env definition file
+                        sh "sed 's/${libName}\\.git@\\?.*/${libName}.git@${releaseTag}/g' ${envDefinitionFile} > tmp.yml && mv tmp.yml ${envDefinitionFile}"
+                    }
+
+                    def firstRelease = !env.BRANCH_NAME.startsWith('release')
+                    if (firstRelease) {
+                        // if it's first release of a major version - create a release branch
+                        sh "git checkout -b ${releaseBranch}"
+                    }
+
+                    // put the tag
+                    sh """
+                        git add ${envDefinitionFile}
+
+                        git commit -m "update lib versions to ${releaseTag}"
+
+                        git tag -a ${releaseTag} HEAD -m 'Automated tagging for release ${releaseTag}'
+                    """
+
+                    // finally, push it
+                    withCredentials([
+                        sshUserPrivateKey(
+                            credentialsId: credentialIdGitPushKey,
+                            keyFileVariable: 'SSH_KEY',
+                            usernameVariable: 'SSH_USER'
+                        )
+                    ]) {
+                        withEnv(["GIT_SSH_COMMAND=ssh -o StrictHostKeyChecking=no -o User=$SSH_USER -i $SSH_KEY"]) {
+                            if (firstRelease) {
+                                sh "git push --set-upstream origin ${releaseBranch} --tags"
+                            } else {
+                                sh "git push --tags"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        stage('Scan') {
+            when { expression  { !skipScan } }
+            steps {
+              container("sonarqube-scanner"){
+                   withSonarQubeEnv('AZ-Enterprise-SonarQube') {
+                       // Relies on the presence of a sonar-project.properties file
+                       // in the code repo to provide values for SonarQube scanner
+                       sh """
+                           sonar-scanner
+                        """
+                   }
+              }
+
+            }
+        }
+        stage('Build') {
+            when { expression  { !skipBuild } }
+            steps {
+                script {
+                    for (entry in reinventLIBS) {
+                        dir(entry[0]) {
+                            // pull out the lib's code on top level before build
+                            sh """
+                                ls | grep -v "${entry[0]}" | xargs rm -rf && \
+                                mv ${entry[0]}/* . && \
+                                rm -rf ${entry[0]}
+                            """
+                        }
+                    }
+                }
+                container('aws') {
+                    // obtain docker credentials
+                    sh "aws ecr get-login-password --region ${awsRegion} > login"
+                }
+                container('builder') {
+                    // cut out bitbucket references
+                    sh """
+                        grep -v 'ssh://git@bitbucket.astrazeneca.net:7999' ${envDefinitionFile} > tmp_file && \
+                        mv tmp_file ${envDefinitionFile}
+                    """
+
+                    sh """
+                        cat login | docker login --username ${dockerLogin} --password-stdin ${imgRegistry}
+
+                        docker build -t ${imgRepository} .
+
+                        docker image ls
+                        docker logout ${imgRegistry}
+                    """
+                }
+            }
+        }
+        stage('Test') {
+            when { expression  { !skipBuild && !skipTests && (unittestsInvocationCommand != null) } }
+            steps {
+                sh """
+                    docker run --rm -u root ${imgRepository}:latest ${unittestsInvocationCommand}
+                """
+            }
+        }
+        stage('Publish') {
+            when { expression  { !skipBuild } }
+            steps {
+                container('aws') {
+                    // obtain docker credentials
+                    sh "aws ecr get-login-password --region ${awsRegion} > login"
+                }
+                container('builder') {
+                    // push the image
+                    sh """
+                        cat login | docker login --username ${dockerLogin} --password-stdin ${imgRegistry}
+
+                        docker tag ${imgRepository}:latest ${imgRegistry}/${imgRepository}:${imgTag}
+                        docker push ${imgRegistry}/${imgRepository}:${imgTag}
+
+                        docker logout ${imgRegistry}
+                    """
+                }
+            }
+        }
+        stage('Deploy to SCP') {
+            when { expression  { !skipDeploy } }
+            steps {
+                script {
+                    // pull the docker image for update of env vars (to pass REINVENT_JWT) before copying to SCP
+                    // only needed when no build was done during this run
+                    if (skipBuild) {
+                        container('aws') {
+                            // obtain docker credentials
+                            sh "aws ecr get-login-password --region ${awsRegion} > login"
+                        }
+                        container('builder') {
+                            // pull the image
+                            sh """
+                                cat login | docker login --username ${dockerLogin} --password-stdin ${imgRegistry}
+
+                                docker pull ${imgRegistry}/${imgRepository}:${imgTag}
+
+                                docker logout ${imgRegistry}
+                            """
+                        }
+                    }
+                    // prepare env vars and save them into a file
+                    def preparedEnvVars = prepareEnvVariables(envVars, envVarsFromSecrets)
+                    sh """
+                        set +x
+
+                        touch env-vars.sh
+
+                        cat <<EOT >> env-vars.sh
+                        ${preparedEnvVars}
+                        EOT
+                    """.stripIndent()
+
+                    // now update env of the image with REINVENT_JWT
+                    containerId = sh(
+                        script: "docker run -d --env-file env-vars.sh ${imgRegistry}/${imgRepository}:${imgTag} ${sleepCommand}",
+                        returnStdout: true,
+                    ).trim()
+
+                    sh """
+                        docker commit ${containerId} ${imgRegistry}/${imgRepository}:${imgTag}
+
+                        docker kill ${containerId}
+                    """
+
+                    // prepare the sif file by saving it as tar and rebuilding as singularity
+                    sh "docker save ${imgRegistry}/${imgRepository}:${imgTag} -o ${sifFileName}.tar"
+
+                    container('singularity') {
+                        sh "singularity build ${sifFileName}.sif docker-archive://${sifFileName}.tar"
+                    }
+
+                    // finally push the sif file to SCP
+                    withCredentials([
+                        sshUserPrivateKey(
+                            credentialsId: credentialIdSCPKey,
+                            keyFileVariable: 'SSH_KEY',
+                            usernameVariable: 'SSH_USER'
+                        )
+                    ]) {
+                        sh "scp -o StrictHostKeyChecking=no -i \$SSH_KEY ${sifFileName}.sif \$SSH_USER@${SCPHost}:${SCPDestinationFolder}/${sifFileName}.sif"
+                    }
+                }
+            }
+        }
+        stage('Run Integration Tests') {
+            when { expression  { !skipTests } }
+            steps {
+                script {
+                    // run integration tests jobs
+                    withCredentials([
+                        sshUserPrivateKey(
+                            credentialsId: credentialIdSCPKey,
+                            keyFileVariable: 'SSH_KEY',
+                            usernameVariable: 'SSH_USER'
+                        )
+                    ]) {
+                        def srunOptions = "-N 1 -c 4 --mem=8G --time=1:0:0 -p gpu --gres=gpu:1"
+                        def singularityOptions = "--nv --bind ${integrationTestsSCPFolder},${integrationTestsSCPFolder}/integration_tests_config.json:/reinventcli/unittest_reinvent/fixtures/integration_tests_config.json"
+                        def integrationTestsCommand = "python /reinventcli/main_test.py --integration"
+                        def command = "srun ${srunOptions} singularity exec ${singularityOptions} ${SCPDestinationFolder}/${sifFileName}.sif ${integrationTestsCommand}"
+
+                        sh "ssh -o StrictHostKeyChecking=no -i \$SSH_KEY \$SSH_USER@${SCPHost} ${command}"
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                if (teamsWebHook != null) {
+                    def teamsNotifier = new utils.teamsNotifications()
+                    teamsNotifier.sendTeamsNotification(this, 'ReinventCLI', teamsWebHook)
+                }
+            }
+        }
+    }
+}

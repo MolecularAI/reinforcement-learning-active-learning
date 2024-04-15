@@ -1,0 +1,108 @@
+{
+    "workflow": {
+        "header": {
+            "version": "1.9.0",
+            "workflow_id": "ADV",
+            "description": "Runs docking using AutoDock Vina and a predefined receptor file.",
+            "environment": {
+                "export": []
+            },
+            "global_variables": {
+                "receptor_path": "rl-al-repo/data/RXRa/minimised/2p1t_apo_explicitH_minimised.pdbqt",
+                "step_id": "",
+                "file_output_dir": "./output"
+            }
+        },
+        "steps": [
+            {
+                "step_id": "rdkit_embedding",
+                "type": "embedding",
+                "settings": {
+                    "arguments": {
+                        "flags": [],
+                        "parameters": {
+                            "protonate": true,
+                            "method": "rdkit"
+                        }
+                    },
+                    "additional": {}
+                },
+                "input": {
+                    "compounds": [
+                        {
+                            "source": "<source_path>",
+                            "source_type": "file",
+                            "format": "smi"
+                        }
+                    ]
+                }
+            },
+            {
+                "step_id": "ADV",
+                "type": "vina_docking",
+                "execution": {
+                    "prefix_execution": "module load AutoDock_Vina",
+                    "parallelization": {
+                        "jobs": 32
+                    },
+                    "failure_policy": {
+                        "n_tries": 3
+                    }
+                },
+                "settings": {
+                    "arguments": {
+                        "flags": [],
+                        "parameters": {}
+                    },
+                    "additional": {
+                        "configuration": {
+                            "seed": 42,
+                            "receptor_path": "{receptor_path}",
+                            "number_poses": 2,
+                            "search_space": {
+                                "--center_x": -3.158,
+                                "--center_y": -18.386,
+                                "--center_z": 31.513,
+                                "--size_x": 20,
+                                "--size_y": 20,
+                                "--size_z": 20
+                            }
+                        },
+                        "grid_ids": [
+                            "RXRa"
+                        ]
+                    }
+                },
+                "input": {
+                    "compounds": [
+                        {
+                            "source": "rdkit_embedding",
+                            "source_type": "step"
+                        }
+                    ]
+                },
+                "writeout": [
+                    {
+                        "compounds": {
+                            "category": "conformers",
+                            "selected_tags": [
+                                "docking_score",
+                                "grid_id"
+                            ],
+                            "aggregation": {
+                                "mode": "best_per_compound",
+                                "key": "docking_score",
+                                "highest_is_best": false
+                            }
+                        },
+                        "destination": {
+                            "resource": "{file_output_dir}/adv_docked_conformers2.csv",
+                            "type": "file",
+                            "format": "CSV"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

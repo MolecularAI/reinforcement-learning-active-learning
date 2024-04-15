@@ -1,0 +1,115 @@
+{
+	"version": 3,
+	"run_type": "reinforcement_learning",
+	"model_type": "lib_invent",
+	"logging": {
+		"sender": "0.0.0.0",
+		"recipient": "local",
+
+		"job_name": "lib-invent",
+		"job_id": "42aeec6fe019299eb7ba"
+	},
+	   "parameters": {
+        "batch_size": 32,
+
+
+        "learning_rate": 0.0001,
+        "learning_strategy": {
+            "name": "dap",
+            "parameters": {
+                "sigma": 120
+            }
+        },
+        "n_steps": 40,
+        "randomize_scaffolds": false,
+        "scaffolds": [
+            "[*:0]Oc1c(cnc2c1nc(cc2)[*:1])c4cnn(c4)C5CCC(CC5)N(C)C(=O)C"
+        ],
+        "scoring_strategy": {
+            "diversity_filter": {
+                "bucket_size": 25,
+                "name": "NoFilter"
+            },
+            "name": "standard",
+            "reaction_filter": {
+                "reactions": {
+                  "0": ["[*;$(c2aaaaa2),$(c2aaaa2):1]-!@[*;$(c2aaaaa2),$(c2aaaa2):2]>>[*:1][*].[*:2][*]"],
+                  "1": ["[*;$(c2aaaaa2),$(c2aaaa2):1]-!@[*;$(c2aaaaa2),$(c2aaaa2):2]>>[*:1][*].[*:2][*]"]
+                },
+                "type": "selective"
+            },
+            "scoring_function": {
+                "name": "custom_product",
+                "parallel": false,
+                "parameters": [
+                    {
+                        "component_type": "molecular_weight",
+                        "model_path": null,
+                        "name": "MW",
+                        "smiles": [],
+                        "specific_parameters": {
+                            "coef_div": 650,
+                            "coef_se": 25,
+                            "coef_si": 10,
+                            "high": 750,
+                            "low": 450,
+                            "transformation": true,
+                            "transformation_type": "double_sigmoid"
+                        },
+                        "weight": 1
+                    },
+                    {
+                        "component_type": "matching_substructure",
+                        "model_path": null,
+                        "name": "Matching substructure",
+                        "smiles": [
+                            "[c]1[c]c2c(c(c([c]n2)c3[c]n[n][c]3)[O])n[c]1"
+                        ],
+                        "specific_parameters": null,
+                        "weight": 1
+                    },
+                    {
+                        "component_type": "custom_alerts",
+                        "model_path": null,
+                        "name": "Custom alerts",
+                        "smiles": [
+                            "[*;r8]",
+                            "[*;r9]",
+                            "[*;r10]",
+                            "[*;r11]",
+                            "[*;r12]",
+                            "[*;r13]",
+                            "[*;r14]",
+                            "[*;r15]",
+                            "[*;r16]",
+                            "[*;r17]",
+                            "[#8][#8]",
+                            "[#6;+]",
+                            "[#16][#16]",
+                            "[#7;!n][S;!$(S(=O)=O)]",
+                            "[#7;!n][#7;!n]",
+                            "C#C",
+                            "C(=[O,S])[O,S]",
+                            "[#7;!n][C;!$(C(=[O,N])[N,O])][#16;!s]",
+                            "[#7;!n][C;!$(C(=[O,N])[N,O])][#7;!n]",
+                            "[#7;!n][C;!$(C(=[O,N])[N,O])][#8;!o]",
+                            "[#8;!o][C;!$(C(=[O,N])[N,O])][#16;!s]",
+                            "[#8;!o][C;!$(C(=[O,N])[N,O])][#8;!o]",
+                            "[#16;!s][C;!$(C(=[O,N])[N,O])][#16;!s]"
+                        ],
+                        "specific_parameters": null,
+                        "weight": 1
+                    },
+                    {
+                        "component_type": "qed_score",
+                        "model_path": null,
+                        "name": "QED Score",
+                        "smiles": [],
+                        "specific_parameters": null,
+                        "weight": 1
+                    }
+                ]
+            }
+        }
+    }
+}

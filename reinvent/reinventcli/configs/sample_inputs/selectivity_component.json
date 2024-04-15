@@ -1,0 +1,149 @@
+{
+    "logging": {
+        "job_id": "42aeec6fe019299eb7ba",
+        "job_name": "rl_4",
+        "logging_frequency": 0,
+
+        "recipient": "local",
+
+        "sender": "http://10.80.75.175"
+    },
+    "parameters": {
+        "curriculum_learning": {
+
+            "batch_size": 128,
+
+            "learning_rate": 0.0001,
+            "margin_threshold": 50,
+            "n_steps": 400,
+            "pause_limit": 5,
+
+
+            "reset": 0,
+            "reset_score_cutoff": 0.5,
+            "sigma": 128,
+
+        },
+        "diversity_filter": {
+            "bucket_size": 25,
+            "minscore": 0.4,
+            "minsimilarity": 0.4,
+            "name": "NoFilter"
+        },
+        "inception": {
+            "memory_size": 100,
+            "sample_size": 10,
+            "smiles": []
+        },
+        "scoring_function": {
+            "name": "custom_product",
+            "parameters": [
+                {
+                    "component_type": "custom_alerts",
+                    "model_path": "",
+                    "name": "custom_alerts",
+                    "smiles": [
+                        "[*;r8]",
+                        "[*;r9]",
+                        "[*;r10]",
+                        "[*;r11]",
+                        "[*;r12]",
+                        "[*;r13]",
+                        "[*;r14]",
+                        "[*;r15]",
+                        "[*;r16]",
+                        "[*;r17]",
+                        "[#8][#8]",
+                        "[#6;+]",
+                        "[#16][#16]",
+                        "[#7;!n][S;!$(S(=O)=O)]",
+                        "[#7;!n][#7;!n]",
+                        "C#C",
+                        "C(=[O,S])[O,S]",
+                        "[#7;!n][C;!$(C(=[O,N])[N,O])][#16;!s]",
+                        "[#7;!n][C;!$(C(=[O,N])[N,O])][#7;!n]",
+                        "[#7;!n][C;!$(C(=[O,N])[N,O])][#8;!o]",
+                        "[#8;!o][C;!$(C(=[O,N])[N,O])][#16;!s]",
+                        "[#8;!o][C;!$(C(=[O,N])[N,O])][#8;!o]",
+                        "[#16;!s][C;!$(C(=[O,N])[N,O])][#16;!s]"
+                    ],
+                    "specific_parameters": {},
+                    "weight": 1
+                },
+                {
+                    "component_type": "predictive_property",
+
+                    "name": "predictive_property",
+                    "smiles": "",
+                    "specific_parameters": {
+                        "descriptor_type": "ecfp",
+                        "high": 9.0,
+                        "k": 0.25,
+                        "low": 4.0,
+                        "radius": 2,
+                        "scikit": "regression",
+                        "size": 512,
+                        "transformation": true,
+                        "transformation_type": "sigmoid"
+                    },
+                    "weight": 1
+                },
+                {
+                    "component_type": "selectivity",
+                    "model_path": "",
+                    "name": "HPK1_LCK",
+                    "smiles": [],
+                    "specific_parameters": {
+
+                        "activity_specific_parameters": {
+                            "descriptor_type": "ecfp",
+                            "high": 9.0,
+                            "k": 0.25,
+                            "low": 4.0,
+                            "radius": 2,
+                            "scikit": "regression",
+                            "size": 512,
+                            "transformation": false,
+                            "transformation_type": "sigmoid"
+                        },
+                        "delta_transformation_parameters": {
+                            "high": 3.0,
+                            "k": 0.25,
+                            "low": 0.0,
+                            "transformation": true,
+                            "transformation_type": "sigmoid"
+                        },
+
+                        "offtarget_specific_parameters": {
+                            "descriptor_type": "ecfp",
+                            "high": 9.0,
+                            "k": 0.25,
+                            "low": 4.0,
+                            "radius": 2,
+                            "scikit": "regression",
+                            "size": 512,
+                            "transformation": false,
+                            "transformation_type": "sigmoid"
+                        }
+                    },
+                    "weight": 4
+                },
+                {
+                    "component_type": "num_rotatable_bonds",
+                    "model_path": null,
+                    "name": "Number of rotatable bonds",
+                    "smiles": [],
+                    "specific_parameters": {
+                        "high": 10,
+                        "low": 5,
+                        "transformation": true,
+                        "transformation_type": "step"
+                    },
+                    "weight": 1
+                }
+            ]
+        }
+    },
+    "run_type": "curriculum_learning",
+    "version": 2
+}

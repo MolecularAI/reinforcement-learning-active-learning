@@ -1,0 +1,25 @@
+{
+  "version": "3.0",
+  "run_type": "sampling",
+  "model_type": "molformer",
+  "parameters": {
+
+
+    "num_smiles": 100,
+    "batch_size": 128,
+    "with_likelihood": true,
+    "sampling_strategy": "beamsearch",
+    "drop_duplicate": true,
+    "input": ["COC(c1ccc(NC(=O)[C@@H]2c3ccc(S(C)(=O)=O)cc3CN2C(C)=O)cc1)(C(F)(F)F)C(F)(F)F"],
+    "parameters": {
+      "temperature": 1.0,
+      "target_smiles_path": ""
+    }
+  },
+  "logging": {
+    "sender": "http://127.0.0.1",
+    "recipient": "local",
+
+    "job_name": "test_job"
+  }
+}

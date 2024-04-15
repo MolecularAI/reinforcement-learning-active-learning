@@ -1,0 +1,22 @@
+{
+  "version": "2.0",
+  "run_type": "create_model",
+  "parameters": {
+
+
+    "num_layers": 3,
+    "layer_size": 512,
+    "cell_type": "lstm",
+    "embedding_layer_size": 256,
+    "dropout": 0,
+    "max_sequence_length": 256,
+    "layer_normalization": false,
+    "standardize": 0
+  },
+  "logging": {
+    "sender": "http://10.59.162.10:8081",
+    "recipient": "local",
+
+    "job_name": "test_job"
+  }
+}

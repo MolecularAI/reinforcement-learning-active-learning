@@ -1,0 +1,106 @@
+{
+  "version": "2.0",
+  "run_type": "reinforcement_learning",
+  "logging": {
+    "sender": "http://10.59.162.10:8081",
+    "recipient": "local",
+    "logging_frequency": 0,
+
+
+    "job_name": "test_job",
+    "job_id": "1"
+  },
+  "parameters": {
+    "diversity_filter": {
+      "name": "NoFilter",
+      "minscore": 0.4,
+      "minsimilarity": 0.4,
+      "bucket_size": 25
+    },
+    "scoring_function": {
+      "name": "primary_multiplicative",
+      "parallel": false,
+      "parameters": [
+        {
+          "component_type": "matching_substructure",
+          "name": "matching_substructure",
+          "weight": 2,
+          "model_path": "",
+          "smiles": [
+            "COc1ccccc1-c1csc(=Nc2ccc(Cl)cc2)[nH]1"
+          ],
+          "specific_parameters": {}
+        },
+        {
+          "component_type": "custom_alerts",
+          "name": "custom_alerts",
+          "weight": 1,
+          "model_path": "",
+          "smiles": [
+            "[*;r8]",
+            "[*;r9]",
+            "[*;r10]",
+            "[*;r11]",
+            "[*;r12]",
+            "[*;r13]",
+            "[*;r14]",
+            "[*;r15]",
+            "[*;r16]",
+            "[*;r17]",
+            "[#8][#8]",
+            "[#6;+]",
+            "[#16][#16]",
+            "[#7;!n][S;!$(S(=O)=O)]",
+            "[#7;!n][#7;!n]",
+            "C#C",
+            "C(=[O,S])[O,S]",
+            "[#7;!n][C;!$(C(=[O,N])[N,O])][#16;!s]",
+            "[#7;!n][C;!$(C(=[O,N])[N,O])][#7;!n]",
+            "[#7;!n][C;!$(C(=[O,N])[N,O])][#8;!o]",
+            "[#8;!o][C;!$(C(=[O,N])[N,O])][#16;!s]",
+            "[#8;!o][C;!$(C(=[O,N])[N,O])][#8;!o]",
+            "[#16;!s][C;!$(C(=[O,N])[N,O])][#16;!s]"
+          ],
+          "specific_parameters": {}
+        },
+        {
+          "component_type": "qed_score",
+          "name": "qed_score",
+          "weight": 1,
+          "model_path": "",
+          "smiles": [],
+          "specific_parameters": {}
+        },
+        {
+          "component_type": "tanimoto_similarity",
+          "name": "test_tanimoto",
+          "weight": 6,
+          "model_path": "",
+          "smiles": [
+            "COc1ccccc1-c1csc(=Nc2ccc(Cl)cc2)[nH]1",
+            "COc1cccc2cc(C(=O)NCCCCN3CCN(c4cccc5nccnc54)CC3)oc21"
+          ],
+          "specific_parameters": {}
+        }
+      ]
+    },
+    "reinforcement_learning": {
+
+
+      "n_steps": 300,
+      "sigma": 128,
+      "learning_rate": 0.0001,
+      "batch_size": 128,
+      "reset": 0,
+      "reset_score_cutoff": 0.5,
+      "margin_threshold": 50
+    },
+    "inception": {
+      "smiles": [
+        "COc1cccc2cc(C(=O)NCCCCN3CCN(c4cccc5nccnc54)CC3)oc21"
+      ],
+      "memory_size": 100,
+      "sample_size": 10
+    }
+  }
+}

@@ -1,0 +1,33 @@
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class active_learning_parameters_enum:
+    AL_INPUT = "al_input"
+    AL_OUTPUT = "al_output"
+    WARMUP = "warmup"
+    TRAINING_POOL_START = "trainingPoolEpochStart"
+    TRAINING_POOL_EPOCHS_LIMIT = "trainingPoolLimit"
+    MAX_COMPOUNDS = "trainingPoolMaxCompounds"
+    MOLECULAR_REPRESENTATION = "molecularRepresentationChoice"
+    ORACLE_CHOICE = "oracleChoice"
+    ICOLOS_CONF_PATH = "confPath"
+    TARGET_PROPERTY = "propertyName"
+    SURROGATE_MODEL = "surrogateModelChoice"
+    ACQUISTION_FUNCTION = "acquisitionFunctionChoice"
+    ACQUISITION_SIZE = "acquisitionBatchSize"
+    DIRECTION = "direction"
+    LOOP_CONDITION = "loopCondition"
+    VIRTUAL_LIBRARY_ACQUISITION_SIZE = "virtualLibraryAcquisitionBatchSize"
+    VIRTUAL_LIBRARY_LOOPS = "virtualLibraryLoops"
+    PREDICTED_WEIGHTS = "predicted_weights"
+    NOISE_LEVEL = "noise_level"
+    CONFIDENCE_CUTOFF = "confidence_cutoff"
+    RELATIVE_FRACTION = "relative_fraction"
+    DROP_DUPLICATE_SMILES = "drop_duplicate_smiles"
+    N_LIG = "n_lig"
+    NUM_CPUS = "num_cpus"
+    MAX_DOCKING_CALLS = "max_docking_calls"
+    SUB_SAMPLE = "sub_sample"
+    MPO_ACQUISITION = "mpo_acquisition"
+    UCB_BETA_VALUE = "ucb_beta_value"

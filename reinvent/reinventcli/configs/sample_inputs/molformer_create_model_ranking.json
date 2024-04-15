@@ -1,0 +1,25 @@
+{
+  "version": "2.0",
+  "run_type": "create_model",
+  "model_type": "molformer",
+  "parameters": {
+    "output_model_path": "../artifacts/results/ranking/high_similarity/empty_model.chpt",
+    "input_smiles_path": "../datasets/high_similarity/smiles.csv",
+    "max_sequence_length": 128,
+    "use_cuda": true,
+    "network":{
+      "num_layers": 6,
+      "num_heads": 8,
+      "model_dimension": 256,
+      "feedforward_dimension": 2048,
+      "dropout": 0.1
+    }
+  },
+  "logging": {
+    "sender": "http://127.0.0.1",
+    "recipient": "local",
+    "logging_path": "../artifacts/results/ranking/high_similarity/progress.log",
+    "job_name": "test_job",
+    "result_folder": "../artifacts/results/ranking/high_similarity"
+  }
+}

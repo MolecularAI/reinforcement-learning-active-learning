@@ -1,0 +1,51 @@
+{
+  "version": "2.0",
+  "run_type": "reinforcement_learning",
+  "logging": {
+    "sender": "http://10.59.162.10:8081",
+    "recipient": "local",
+    "logging_frequency": 0,
+    "logging_path": "/<some path>/reinforcement_learning/progress.log",
+    "resultdir": "/<some path>/reinforcement_learning/results",
+    "job_name": "test_job",
+    "job_id": "1"
+  },
+  "parameters": {
+    "diversity_filter": {
+      "name": "NoFilter",
+      "minscore": 0.4,
+      "minsimilarity": 0.4,
+      "bucket_size": 25
+    },
+    "scoring_function": {
+      "name": "custom_sum",
+      "parallel": false,
+      "parameters": [
+        {
+          "component_type": "sa_score",
+          "name": "sa_score_model",
+          "weight": 4,
+
+          "smiles": [],
+          "specific_parameters": {}
+        }
+      ]
+    },
+    "reinforcement_learning": {
+
+
+      "n_steps": 1000,
+      "sigma": 128,
+      "learning_rate": 0.0001,
+      "batch_size": 128,
+      "reset": 0,
+      "reset_score_cutoff": 0.5,
+      "margin_threshold": 50
+    },
+    "inception": {
+      "smiles": [],
+      "memory_size": 100,
+      "sample_size": 10
+    }
+  }
+}

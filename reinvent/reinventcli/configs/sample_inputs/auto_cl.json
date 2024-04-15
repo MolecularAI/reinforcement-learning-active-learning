@@ -1,0 +1,120 @@
+{
+	"logging": {
+		"job_id": "AutoCL Test Run",
+		"job_name": "AutoCL Test Run",
+		"logging_frequency": 0,
+
+		"recipient": "local",
+
+		"sender": "0.0.0.0"
+	},
+	"parameters": {
+
+
+		"curriculum_strategy": {
+			"name": "user_defined",
+			"max_num_iterations": 300,
+			"batch_size": 64,
+			"learning_rate": 0.0001,
+			"sigma": 128,
+			"diversity_filter": {
+					"bucket_size": 25,
+					"minscore": 0.4,
+					"minsimilarity": 0.4,
+					"name": "NoFilter"
+				},
+			"inception": {
+					"memory_size": 100,
+					"sample_size": 10,
+					"smiles": []
+				},
+			"curriculum_objectives": [{
+				"scoring_function": {
+					"name": "custom_product",
+					"parallel": false,
+					"parameters": [
+						{
+							"component_type": "tanimoto_similarity",
+							"model_path": null,
+							"name": "Benzene Similarity",
+							"smiles": [
+								"c1ccccc1"
+							],
+							"specific_parameters": {
+								"radius": 3,
+								"use_counts": true,
+								"use_features": true
+							},
+							"weight": 1
+						}
+					]
+				},
+				"score_threshold": 0.4
+			},
+			{
+				"scoring_function": {
+					"name": "custom_product",
+					"parallel": false,
+					"parameters": [
+						{
+							"component_type": "tanimoto_similarity",
+							"model_path": null,
+							"name": "Propane Similarity",
+							"smiles": [
+								"c1ccccc1CC(N)C"
+							],
+							"specific_parameters": {
+								"radius": 3,
+								"use_counts": true,
+								"use_features": true
+							},
+							"weight": 1
+						}
+					]
+				},
+				"score_threshold": 0.4
+			}]
+		},
+		"production_strategy": {
+				"name": "standard",
+				"retain_inception": false,
+				"batch_size": 64,
+					"learning_rate": 0.0001,
+					"n_steps": 12,
+					"sigma": 128,
+				"diversity_filter": {
+					"bucket_size": 25,
+					"minscore": 0.4,
+					"minsimilarity": 0.4,
+					"name": "IdenticalMurckoScaffold"
+				},
+				"inception": {
+					"memory_size": 100,
+					"sample_size": 10,
+					"smiles": []
+				},
+				"scoring_function": {
+					"name": "custom_product",
+					"parallel": false,
+					"parameters": [
+						{
+							"component_type": "tanimoto_similarity",
+							"model_path": null,
+							"name": "Propane Similarity",
+							"smiles": [
+								"c1ccccc1C"
+							],
+							"specific_parameters": {
+								"radius": 3,
+								"use_counts": true,
+								"use_features": true
+							},
+							"weight": 1
+						}
+					]
+				}
+			}
+	},
+	"run_type": "automated_curriculum_learning",
+	"version": 3
+}

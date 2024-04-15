@@ -1,0 +1,40 @@
+{
+  "version": "2.0",
+  "run_type": "transfer_learning",
+  "model_type": "molformer",
+  "parameters": {
+
+
+
+    "validation_percentage": 0.1,
+    "reset_optimizer": true,
+    "pairs": 
+    {
+        "type": "tanimoto",
+        "threshold": 0.7,
+        "min_cardinality": 10,
+	"max_cardinality": 100 
+    },
+    "optimizer": {
+        "lr": 1e-4,
+        "beta1": 0.9,
+        "beta2":0.98,
+        "eps": 1e-9,
+        "factor": 1.0,
+        "warmup": 4000
+    },
+    "starting_epoch": 1,
+    "num_epochs": 60,
+    "batch_size": 128,
+    "shuffle_each_epoch": true,
+    "save_every_n_epochs": 1
+  },
+  "logging": {
+    "sender": "http://127.0.0.1",
+    "recipient": "local",
+
+    "use_weights": 0,
+    "job_name": "test_job",
+    "job_id": "1"
+  }
+}

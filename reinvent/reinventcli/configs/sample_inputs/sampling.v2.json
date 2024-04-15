@@ -1,0 +1,17 @@
+{
+  "version": "2.0",
+  "run_type": "sampling",
+  "parameters": {
+
+
+    "num_smiles": 1024,
+    "batch_size": 128,
+    "with_likelihood": false
+  },
+  "logging": {
+    "sender": "http://10.59.162.10:8081",
+    "recipient": "local",
+
+    "job_name": "test_job"
+  }
+}

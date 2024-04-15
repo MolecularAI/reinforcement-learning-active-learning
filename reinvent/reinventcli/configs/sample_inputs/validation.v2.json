@@ -1,0 +1,26 @@
+{
+  "version": "2.0",
+  "run_type": "validation",
+  "logging": {
+    "sender": "http://10.59.162.10:8081",
+    "recipient": "local",
+
+    "job_name": "test_job",
+    "job_id": "1"
+  },
+  "parameters": {
+    "component_type": "activity",
+    "name": "AXL_score",
+    "weight": 2,
+
+    "smiles": [],
+    "specific_parameters": {
+      "high": 9.0,
+      "k": 0.25,
+      "low": 4.0,
+      "transformation_type": "sigmoid",
+      "scikit": "regression",
+      "transformation": false
+    }
+  }
+}

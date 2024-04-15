@@ -1,0 +1,36 @@
+{
+  "ICOLOS_TEST_DATA": "<FILL_PATH>/IcolosData",
+  "OE_LICENSE": "<FILL_PATH>/oe_license.seq1",
+  "CREST_BINARY_LOCATION": "<FILL_PATH>",
+  "XTBHOME": "<FILL_PATH>",
+  "XTBPATH": "${XTBHOME}/share/xtb",
+  "TURBOMOLE_CONFIG": "<FILL_PATH>",
+  "ACPYPE": "<FILL_PATH>/acpype",
+  "PATH": "${PATH}:${XTBHOME}",
+  "PKG_CONFIG_PATH": "${PKG_CONFIG_PATH}:${XTBHOME}/lib64/pkgconfig",
+  "PARNODES": "2",
+  "PARA_ARCH": "MPI",
+  "PANTHER_LOCATION": "<FILL_PATH>/panther",
+  "SHAEP_LOCATION": "<FILL_PATH>",
+  "SCHRODINGER_MODULE": "module load schrodinger",
+  "HOST": "localhost",
+  "FORCEFIELD": "<FILL_PATH>/charmm36-feb2021.ff",
+  "OPTUNA_AZ": {
+    "ENVIRONMENT_PYTHON": "<FILL_PATH>/miniconda3/envs/Optuna_AZ/bin/python",
+    "ENTRY_POINT_LOCATION": "<FILL_PATH>/OptunaAZ"
+  },
+  "PMX": {
+    "PMX": "<FILL_PATH>/envs/pmx/bin/pmx",
+    "MODULE": "module load GROMACS && unset PYTHONPATH",
+    "PMX_PYTHON": "<FILL_PATH>/envs/pmx/bin/python",
+    "EXP_DATA": "<FILL_PATH>/IcolosData/expdata",
+    "CLI_ENTRYPOINT": "<FILL_PATH>/pmx/src/pmx/scripts/icolos_entrypoints",
+    "GMXLIB": "<FILL_PATH>/px_az/src/pmx/data/mutff"
+  },
+  "DSSP": "<FILL_PATH>",
+  "MINICONDA_BASE": ". /<path to miniconda>/etc/profile.d/conda.sh",
+  "OPENMM_FORCEFIELDS": "<FILL_PATH>",
+  "MDPLOT": "<FILL_PATH>/MDplot",
+  "KALLISTO_LOCATION": "~/miniconda3/envs/kallisto/bin",
+  "JAZZY_LOCATION": "~/miniconda3/envs/jazzy/bin"
+}

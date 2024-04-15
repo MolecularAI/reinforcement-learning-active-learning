@@ -1,0 +1,91 @@
+{
+    "workflow": {
+        "header": {
+            "workflow_id": "docking_minimal",
+            "description": "generic scoring example",
+            "environment": {
+                "export": []
+            },
+            "global_variables": {
+                "molecules": "<FILL_PATH>/IcolosData/molecules/small_molecules.sdf",
+                "work_dir": "<FILL_PATH>"
+            }
+        },
+        "steps": [
+            {
+                "step_id": "initialization_sdf",
+                "type": "initialization",
+                "input": {
+                    "compounds": [
+                        {
+                            "source": "{molecules}",
+                            "source_type": "file",
+                            "format": "SDF"
+                        }
+                    ]
+                }
+            },
+            {
+                "step_id": "ROCS",
+                "type": "generic_score",
+                "execution": {
+                    "prefix_execution": "module load oetoolkits",
+                    "parallelization": {
+                        "cores": 2,
+                        "max_length_sublists": 1
+                    },
+                    "failure_policy": {
+                        "n_tries": 3
+                    }
+                },
+                "settings": {
+                    "arguments": {
+                        "flags": ["<FILL_PATH>/shape_query_rocs.sq"],
+                        "parameters": {}
+                    },
+                    "additional": {
+                        "interpreter": "python3",
+                        "script_path": "<FILL_PATH>/scoring.py"
+                    }
+                },
+                "input": {
+                    "compounds": [
+                        {
+                            "source": "initialization_sdf",
+                            "source_type": "step"
+                        }
+                    ]
+                },
+                "writeout": [
+                    {
+                        "compounds": {
+                            "category": "conformers"
+                        },
+                        "destination": {
+                            "resource": "{work_dir}/docked_conformers.sdf",
+                            "type": "file",
+                            "format": "SDF"
+                        }
+                    },
+                    {
+                        "compounds": {
+                            "category": "conformers",
+                            "selected_tags": [
+                                "score"
+                            ],
+                            "aggregation": {
+                                "mode": "best_per_compound",
+                                "key": "score"
+                            }
+                        },
+                        "destination": {
+                            "resource": "{work_dir}/docked_conformers.csv",
+                            "type": "file",
+                            "format": "CSV"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

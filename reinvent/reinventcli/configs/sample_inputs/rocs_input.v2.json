@@ -1,0 +1,92 @@
+{
+  "logging": {
+    "job_id": "1",
+    "job_name": "DRD2_custom_cff",
+    "logging_frequency": 0,
+    "logging_path": "/home",
+    "recipient": "local",
+    "resultdir": "/home",
+    "sender": "http://10.80.75.175"
+  },
+  "parameters": {
+    "inception": {
+      "memory_size": 100,
+      "sample_size": 10,
+      "smiles": []
+    },
+    "reinforcement_learning": {
+
+      "batch_size": 128,
+      "learning_rate": 0.0001,
+      "margin_threshold": 50,
+      "n_steps": 3000,
+
+      "reset": 0,
+      "reset_score_cutoff": 0.5,
+      "sigma": 128
+    },
+    "diversity_filter": {
+      "minscore": 0.4,
+      "minsimilarity": 0.4,
+      "name": "IdenticalMurckoScaffold",
+      "bucket_size": 25
+    },
+    "scoring_function": {
+      "name": "custom_product",
+      "parallel": true,
+      "parameters": [
+        {
+          "component_type": "parallel_rocs_similarity",
+          "model_path": null,
+          "name": "ROCS similarity",
+          "smiles": [],
+          "specific_parameters": {
+            "color_weight": 0.7,
+            "input_type": "shape_query",
+            "max_num_cpus": 8,
+            "rocs_input": "/home",
+            "shape_weight": 0.3,
+            "custom_cff": "/home",
+            "transformation": false,
+            "similarity_measure": "RefTversky"
+          },
+          "weight": 4
+        },
+        {
+          "component_type": "custom_alerts",
+          "model_path": null,
+          "name": "Custom alerts",
+          "smiles": [
+            "[*;r8]",
+            "[*;r9]",
+            "[*;r10]",
+            "[*;r11]",
+            "[*;r12]",
+            "[*;r13]",
+            "[*;r14]",
+            "[*;r15]",
+            "[*;r16]",
+            "[*;r17]",
+            "[#8][#8]",
+            "[#6;+]",
+            "[#16][#16]",
+            "[#7;!n][S;!$(S(=O)=O)]",
+            "[#7;!n][#7;!n]",
+            "C#C",
+            "C(=[O,S])[O,S]",
+            "[#7;!n][C;!$(C(=[O,N])[N,O])][#16;!s]",
+            "[#7;!n][C;!$(C(=[O,N])[N,O])][#7;!n]",
+            "[#7;!n][C;!$(C(=[O,N])[N,O])][#8;!o]",
+            "[#8;!o][C;!$(C(=[O,N])[N,O])][#16;!s]",
+            "[#8;!o][C;!$(C(=[O,N])[N,O])][#8;!o]",
+            "[#16;!s][C;!$(C(=[O,N])[N,O])][#16;!s]"
+          ],
+          "specific_parameters": null,
+          "weight": 1
+        }
+      ]
+    }
+  },
+  "run_type": "reinforcement_learning",
+  "version": 2
+}

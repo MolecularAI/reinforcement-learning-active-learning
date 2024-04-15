@@ -1,0 +1,59 @@
+{
+	"version": 2,
+	"run_type": "curriculum_learning",
+	"logging": {
+		"sender": "",
+		"recipient": "local",
+		"logging_frequency": 10,
+
+
+		"job_name": "cl_4",
+		"job_id": "n/a"
+	},
+	"parameters": {
+		"diversity_filter": {
+			"name": "NoFilter",
+			"bucket_size": 25,
+			"minscore": 0.4,
+			"minsimilarity": 0.4
+		},
+		"scoring_function": {
+			"name": "custom_product",
+			"parallel": false,
+			"parameters": [
+				{
+					"component_type": "tanimoto_similarity",
+					"name": "tanimoto_similarity",
+					"weight": 2,
+					"model_path": null,
+					"smiles": [
+						"Cc1ccsc1C=CC(=O)c1ccc(O)c(CN2CCOCC2)c1"
+					],
+					"specific_parameters": null
+				}
+			]
+		},
+		"curriculum_learning": {
+
+
+
+			"pause_limit": 60,
+
+			"general_configuration_path": "/home",
+			"scheduled_update_step": 10,
+			"n_steps": 200,
+			"sigma": 128,
+			"learning_rate": 0.0001,
+			"batch_size": 128,
+			"reset": 0,
+			"reset_score_cutoff": 0.5,
+			"margin_threshold": 50,
+			"distance_threshold": -100.0
+		},
+		"inception": {
+			"smiles": ["Cc1ccsc1C=CC(=O)c1ccc(O)c(CN2CCOCC2)c1"],
+			"memory_size": 100,
+			"sample_size": 10
+		}
+	}
+}

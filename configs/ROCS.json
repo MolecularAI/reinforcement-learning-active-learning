@@ -1,0 +1,94 @@
+{
+    "workflow": {
+        "header": {
+            "workflow_id": "ROCS",
+            "description": "ROCS",
+            "environment": {
+                "export": []
+            },
+            "global_variables": {
+                "work_dir": "./",
+                "output_dir": "./docked_files/"
+            }
+        },
+        "steps": [
+            {
+                "step_id": "initialization_sdf",
+                "type": "initialization",
+                "input": {
+                    "compounds": [
+                        {
+                            "source": "",
+                            "source_type": "file",
+                            "format": "smi"
+                        }
+                    ]
+                }
+            },
+            {
+                "step_id": "ROCS",
+                "type": "generic_score",
+                "execution": {
+                    "prefix_execution": "module purge && module load oetoolkits",
+                    "parallelization": {
+                        "cores": 8,
+                        "jobs": 8,
+                        "max_length_sublists": 1
+                    },
+                    "failure_policy": {
+                        "n_tries": 3
+                    }
+                },
+                "settings": {
+                    "arguments": {
+                        "flags": [
+                            "rl-al-repo/data/CoX2/shape_query/S58.sq"
+                        ],
+                        "parameters": {}
+                    },
+                    "additional": {
+                        "interpreter": "python3",
+                        "script_path": "rl-al-repo/scripts/rocs_scoring.py"
+                    }
+                },
+                "input": {
+                    "compounds": [
+                        {
+                            "source": "initialization_sdf",
+                            "source_type": "step"
+                        }
+                    ]
+                },
+                "writeout": [
+                    {
+                        "compounds": {
+                            "category": "conformers"
+                        },
+                        "destination": {
+                            "resource": "{output_dir}/sdf_files/{step_id}_rocked_conformers.sdf",
+                            "type": "file",
+                            "format": "SDF"
+                        }
+                    },
+                    {
+                        "compounds": {
+                            "category": "conformers",
+                            "selected_tags": [
+                                "docking_score"
+                            ],
+                            "aggregation": {
+                                "mode": "best_per_compound",
+                                "key": "docking_score"
+                            }
+                        },
+                        "destination": {
+                            "resource": "{output_dir}/csv_files/{step_id}_rocked_conformers.csv",
+                            "type": "file",
+                            "format": "CSV"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

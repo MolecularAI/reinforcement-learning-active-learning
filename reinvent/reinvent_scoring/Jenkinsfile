@@ -1,0 +1,8 @@
+@Library('scp-model-pipeline') _
+
+buildEnvAndTest this,
+    buildCommand: 'conda env update --name=base --file=environment.yml',
+    testCommand: 'python main_test.py --unittests',
+    teamsWebHook: 'https://azcollaboration.webhook.office.com/webhookb2/fad6dfa3-0530-4b65-b65f-f1e83bd6fb92@af8e89a3-d9ac-422f-ad06-cc4eb4214314/IncomingWebhook/32e5aa47806f4e8dacba65eff46ab71a/96efbb05-b287-40bd-beb5-eeade5bc63ea',
+    buildSSHKeyId: 'add-ssh-key',
+    name: 'Reinvent Scoring'

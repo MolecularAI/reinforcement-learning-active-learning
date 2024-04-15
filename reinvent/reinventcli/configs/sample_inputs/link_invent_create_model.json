@@ -1,0 +1,13 @@
+{
+  "version": "3.0",
+  "run_type": "create_model",
+  "model_type": "link_invent",
+  "logging": {
+    "recipient": "local",
+    "logging_path": "/home",
+  },
+  "parameters": {
+
+
+  }
+}

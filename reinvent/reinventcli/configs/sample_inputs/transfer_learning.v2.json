@@ -1,0 +1,40 @@
+{
+  "version": "2.0",
+  "run_type": "transfer_learning",
+  "parameters": {
+
+
+
+    "save_every_n_epochs": 1,
+    "batch_size": 128,
+    "clip_gradient_norm": 1.0,
+    "num_epochs": 5,
+    "starting_epoch": 1,
+    "shuffle_each_epoch": 1,
+    "collect_stats_frequency": 1,
+    "standardize": true,
+    "randomize": false,
+
+    "adaptive_lr_config": {
+      "mode": "constant",
+      "gamma": 0.8,
+      "step": 1,
+      "start": 5E-4,
+      "min": 1E-5,
+      "threshold": 1E-4,
+      "average_steps": 4,
+      "patience": 8,
+      "restart_value": 1E-5,
+      "sample_size": 100,
+      "restart_times": 0
+    }
+  },
+  "logging": {
+    "sender": "http://10.59.162.10:8081",
+    "recipient": "local",
+
+    "use_weights": 0,
+    "job_name": "test_job",
+    "job_id": "1"
+  }
+}

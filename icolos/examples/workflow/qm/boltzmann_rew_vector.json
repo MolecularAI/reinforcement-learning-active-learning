@@ -1,0 +1,69 @@
+{
+    "workflow": {
+        "header": {
+            "version": "1.9.0",
+            "workflow_id": "Boltzmann vector reweighting",
+            "description": "Example of reweighting atomic (i.e. vector) properties as opposed to molecular (i.e. scalar) properties.",
+            "environment": {
+                "export": [{
+                        "key": "XTBHOME",
+
+                    }, {
+                        "key": "XTBPATH",
+                        "value": "${XTBHOME}/share/xtb"
+                    }, {
+                        "key": "PATH",
+                        "value": "${PATH}:${XTBHOME}/bin"
+                    }, {
+                        "key": "PKG_CONFIG_PATH",
+                        "value": "${PKG_CONFIG_PATH}:${XTBHOME}/lib64/pkgconfig"
+                    }
+                ]
+            },
+            "global_variables": {
+            }
+        },
+        "steps": [{
+                "step_id": "boltzmann_weighting",
+                "type": "boltzmann_weighting",
+                "settings": {
+                    "arguments": {
+                        "flags": [],
+                        "parameters": {
+                            "properties": [{
+                                    "input": "conformer_energy",
+                                    "output": "boltzfactor_ener"
+                                }
+                            ],
+                            "weight": {
+                                "input": ["r_mmod_Relative_Potential_Energy-OPLS3e", "Isotropic sheilding", "Anisotropic sheilding", "dD dB contribution"],
+                                "output_prefix": "bf_weighted",
+                                "properties": ["boltzfactor_ener"]
+                            }
+                        }
+                    }
+                },
+                "input": {
+                    "compounds": [{
+							"source": "{package_dir}/../IcolosData/molecules/turbomol_nmr.sdf",
+                            "source_type": "file",
+                            "format": "SDF"
+                        }
+                    ]
+                },
+                "writeout": [{
+                        "compounds": {
+                            "category": "conformers"
+                        },
+                        "destination": {
+                            "resource": "{package_dir}/tests/junk/turbomol_nmr_reweighted.sdf",
+                            "type": "file",
+                            "format": "SDF"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}
+

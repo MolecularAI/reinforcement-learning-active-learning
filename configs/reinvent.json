@@ -1,0 +1,143 @@
+{
+    "logging": {
+        "job_id": "ROCS_active_learning",
+        "job_name": "ROCS_active_learning",
+        "logging_frequency": 100,
+        "logging_path": "./reinvent_logging/",
+        "recipient": "local",
+        "result_folder": "./reinvent_results",
+        "sender": "http://127.0.0.1"
+    },
+    "model_type": "default",
+    "parameters": {
+        "diversity_filter": {
+            "bucket_size": 100,
+            "minscore": 0.20,
+            "minsimilarity": 0.0,
+            "name": "IdenticalMurckoScaffold"
+        },
+        "inception": {
+            "memory_size": 100,
+            "sample_size": 10,
+            "smiles": []
+        },
+        "reinforcement_learning": {
+            "agent": "rl-al-repo/data/reinvent_prior/random.prior.new",
+            "batch_size": 16,
+            "learning_rate": 0.0001,
+            "margin_threshold": 50,
+            "n_steps": 500,
+            "prior": "rl-al-repo/data/reinvent_prior/random.prior.new",
+            "sigma": 128
+        },
+        "scoring_function": {
+            "name": "custom_product",
+            "parallel": true,
+            "parameters": [
+                {
+                    "component_type": "molecular_weight",
+                    "name": "Molecular weight",
+                    "specific_parameters": {
+                        "transformation": {
+                            "coef_div": 550,
+                            "coef_se": 20,
+                            "coef_si": 20,
+                            "high": 550,
+                            "low": 200,
+                            "transformation_type": "double_sigmoid"
+                        }
+                    },
+                    "weight": 1
+                },
+                {
+                    "component_type": "custom_alerts",
+                    "name": "simple alerts",
+                    "weight": 1,
+                    "specific_parameters": {
+                        "smiles": [
+                            "[*;r7]",
+                            "[*;r8]",
+                            "[*;r9]",
+                            "[*;r10]",
+                            "[*;r11]",
+                            "[*;r12]",
+                            "[*;r13]",
+                            "[*;r14]",
+                            "[*;r15]",
+                            "[*;r16]",
+                            "[*;r17]",
+                            "[#8][#8]",
+                            "[#6;+]",
+                            "[#16][#16]",
+                            "[#7;!n][S;!$(S(=O)=O)]",
+                            "[#7;!n][#7;!n]",
+                            "C#C",
+                            "C=N",
+                            "C(=[O,S])[O,S]"
+                        ]
+                    }
+                },
+                {
+                    "component_type": "qed_score",
+                    "name": "QED Score",
+                    "weight": 1
+                },
+                {
+                    "weight": 1,
+                    "component_type": "num_hbd_lipinski",
+                    "name": "Number of HB-donors (Lipinski)",
+                    "specific_parameters": {
+                        "transformation": {
+                            "high": 6,
+                            "low": 2,
+                            "transformation_type": "reverse_sigmoid",
+                            "k": 0.5
+                        }
+                    }
+                },
+                {
+                    "component_type": "active_learning",
+                    "name": "AL",
+                    "specific_parameters": {
+                        "al_output": "./", 
+                        "warmup": 1,
+                        "trainingPoolEpochStart": 0,
+                        "trainingPoolLimit": 1000,
+                        "trainingPoolMaxCompounds": 1000,
+                        "molecularRepresentationChoice": "Physchem",
+                        "oracleChoice": "icolos",
+                        "confPath": "./ROCS.json",
+                        "propertyName": "docking_score",
+                        "surrogateModelChoice": "RandomForest",
+                        "acquisitionFunctionChoice": "UCB",
+                        "acquisitionBatchSize": 8,
+                        "direction": "positive",
+                        "loopCondition": 801,
+                        "virtualLibraryAcquisitionBatchSize": 8,
+                        "virtualLibraryLoops": 1,
+                        "predicted_weights": 0.00,
+                        "noise_level": 0.00,
+                        "confidence_cutoff": 0.00,
+                        "relative_fraction": 0.00,
+                        "drop_duplicate_smiles": true,
+                        "n_lig": 0.00,
+                        "num_cpus": 0,
+                        "max_docking_calls": 100000,
+                        "sub_sample": false,
+                        "mpo_acquisition": false,
+                        "ucb_beta_value": 0.0,
+                        "transformation": {
+                            "high": 0.65,
+                            "k": 0.3,
+                            "low": 0.3,
+                            "transformation_type": "sigmoid"
+                        }
+                    },
+                    "weight": 1
+                }
+            ]
+        }
+    },
+    "run_type": "reinforcement_learning",
+    "version": 3
+}

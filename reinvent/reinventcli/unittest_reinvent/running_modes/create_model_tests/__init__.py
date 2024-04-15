@@ -1,0 +1,3 @@
+from unittest_reinvent.running_modes.create_model_tests.test_create_model import TestCreateModel
+from unittest_reinvent.running_modes.create_model_tests.test_link_invent_create_model import TestLinkInventCreateModel
+from unittest_reinvent.running_modes.create_model_tests.test_molformer_create_model import TestMolformerCreateModel
